@@ -14,7 +14,7 @@ static bKVU32 _b_kv_str2u32(bKVU8 *pstr)
 {
 	bKVU32 u32_tmp = 0, i = 0, sum = 0;
 	bKVU32 len = strlen(pstr);
-	if(pstr == bFDB_NULL || len == 0)
+	if(pstr == bKVNULL || len == 0)
 	{
 		return 0;
 	}
@@ -35,15 +35,21 @@ static bKVU32 _b_kv_str2u32(bKVU8 *pstr)
 
 static bKVS32 _b_kv_search_code(bKVU32 code)
 {
+	bKVU32 s = 0, e = B_KV_ITEM_MAX_NUMBER, k;
     if(code == 0)	
-	
+	{
+		return -1;
+	}
+
+    for(i = 0;i < B_KV_ITEM_MAX_NUMBER;i++)
+    {
+		if(b_kv_code_table[i] != 0 && b_kv_code_table[i] == code)
+		{
+			return i;
+		}
+    }
+	return -1;
 }
-
-
-
-
-
-
 
 
 bKVS32 b_kv_init()

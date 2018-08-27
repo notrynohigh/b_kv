@@ -10,7 +10,7 @@ typedef signed char        bKVS8;
 typedef signed short       bKVS16;
 typedef signed int         bKVS32;
 
-#define b_KV_NULL          ((void *)0)
+#define bKVNULL           ((void *)0)
 
 
 #define B_KV_ITEM_MAX_NUMBER    100                 // <= 256 

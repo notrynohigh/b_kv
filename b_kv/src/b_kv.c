@@ -70,6 +70,13 @@ static bKVS32 _b_kv_search_code(bKVU32 code)
     return B_KV_STA_NO_ITEM;
 }
 
+static bKVS32 _b_kv_area_clear()
+{
+    return b_kv_port_erase(B_KV_START_ADDRESS, (B_KV_SIZE / B_KV_MIN_ERASE_UNIT));
+}
+
+
+
 
 bKVS32 b_kv_init()
 {
@@ -105,6 +112,7 @@ static bKVS32 _b_kv_get_last_info(b_kv_info_t *pinfo)
     }
     if(b_kv_current_number == 0)
     {
+        _b_kv_area_clear();
         pinfo->address = B_KV_VALUE_ADDRESS;
         pinfo->length = 0;
         return B_KV_STA_OK;

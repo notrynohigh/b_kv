@@ -21,8 +21,8 @@
  * SOFTWARE.
  *****************************************************************************
  */
-#include "./inc/b_kv.h"
-#include "./port/b_kv_port.h"
+#include "../inc/b_kv.h"
+#include "../port/b_kv_port.h"
 #include "string.h"
 
 static bKVU32 b_kv_code_table[B_KV_ITEM_MAX_NUMBER];

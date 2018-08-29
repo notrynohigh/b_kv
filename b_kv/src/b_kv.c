@@ -232,6 +232,10 @@ static bKVS32 _b_kv_add_new(bKVU32 code, bKVU8* pbuf, bKVU32 len)
         return B_KV_STA_FULL;
     }
     _b_kv_get_last_info(&b_kv_last_info);
+    b_kv_info.code = code;
+    b_kv_info.address = b_kv_last_info.address + b_kv_last_info.length;
+    b_kv_info.length = len;
+    b_kv_info.reserved = 0xffffffff;	
     if((b_kv_current_number == B_KV_ITEM_MAX_NUMBER) || ((b_kv_info.address + b_kv_info.length) >= B_KV_VALUEBAK_SADDR))
     {
         _b_kv_recycle();
@@ -239,12 +243,13 @@ static bKVS32 _b_kv_add_new(bKVU32 code, bKVU8* pbuf, bKVU32 len)
         {
             return B_KV_STA_FULL;
         } 
+		_b_kv_get_last_info(&b_kv_last_info);
+		b_kv_info.address = b_kv_last_info.address + b_kv_last_info.length;
+        if((b_kv_info.address + b_kv_info.length) >= B_KV_VALUEBAK_SADDR)
+		{
+			return B_KV_STA_NO_SIZE;
+		}			
     } 
-    _b_kv_get_last_info(&b_kv_last_info);
-    b_kv_info.code = code;
-    b_kv_info.address = b_kv_last_info.address + b_kv_last_info.length;
-    b_kv_info.length = len;
-    b_kv_info.reserved = 0xffffffff;
     
     if((B_KV_STA_OK == b_kv_port_write(b_kv_info.address, pbuf, len))
         && (B_KV_STA_OK == b_kv_port_write(b_kv_info.address + B_KV_VALUE_SIZE, pbuf, len)))

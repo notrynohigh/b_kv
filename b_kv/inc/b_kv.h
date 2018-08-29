@@ -2,7 +2,7 @@
  ****************************************************************************
  * MIT License
  * @file b_kv.h 
- * @version v0.0.1
+ * @version v0.0.2
  * Copyright (c) [2018-2019] [Bean  email: notrynohigh@outlook.com]
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,12 +29,32 @@
 #include "./port/b_kv_config.h"
 
 
+/***
 
+  b_kv_info
+  b_kv_info_bak
+  b_kv_value
+  b_kv_value_bak
 
-#define B_KV_VALUE_ADDRESS      (B_KV_START_ADDRESS + B_KV_MIN_ERASE_UNIT)
-#define B_KV_MAX_ADDRESS        (B_KV_START_ADDRESS + B_KV_SIZE)
+*/
+#define B_KV_INFO_SADDR           B_KV_START_ADDRESS   
+#define B_KV_INFO_SIZE            B_KV_MIN_ERASE_UNIT
 
+#define B_KV_INFOBAK_SADDR       (B_KV_INFO_SADDR + B_KV_INFO_SIZE)
+#define B_KV_INFOBAK_SIZE         B_KV_INFO_SIZE
 
+#define B_KV_VALUE_SADDR         (B_KV_INFOBAK_SADDR + B_KV_INFOBAK_SIZE)
+#define B_KV_VALUE_SIZE           B_KV_MIN_ERASE_UNIT
+
+#define B_KV_VALUEBAK_SADDR      (B_KV_VALUE_SADDR + B_KV_VALUE_SIZE)
+#define B_KV_VALUEBAK_SIZE        B_KV_VALUE_SIZE
+
+#define B_KV_MAX_ADDRESS         (B_KV_VALUEBAK_SADDR + B_KV_VALUEBAK_SIZE)
+#define B_KV_TOTAL_SIZE          (4 * B_KV_MIN_ERASE_UNIT)
+
+#if (B_KV_TOTAL_SIZE > B_KV_SIZE)
+#error "FLASH SIZE ERROR ..."
+#endif
 
 
 
@@ -53,9 +73,6 @@ typedef struct
 
 
 
-
-
-
 #pragma pack()
 
 
@@ -63,10 +80,9 @@ typedef struct
 
 
 bKVS32 b_kv_init(void);
-
 bKVS32 b_kv_add_value(bKVU8 *pname, bKVU8* pbuf, bKVU32 len);
 bKVS32 b_kv_get_value(bKVU8 *pname, bKVU8* pbuf, bKVU32* len);
-
+bKVS32 b_kv_delete_value(bKVU8 *pname);
 
 
 

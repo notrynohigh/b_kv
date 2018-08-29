@@ -2,7 +2,7 @@
  ****************************************************************************
  * MIT License
  * @file b_kv_config.h 
- * @version v0.0.1
+ * @version v0.0.2
  * Copyright (c) [2018-2019] [Bean  email: notrynohigh@outlook.com]
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,8 +38,10 @@ typedef signed int         bKVS32;
 
 #define B_KV_ITEM_MAX_NUMBER    100                 // <= 256 
 #define B_KV_MIN_ERASE_UNIT     0X1000
+
 #define B_KV_START_ADDRESS      0X0000
-#define B_KV_SIZE               (3 * B_KV_MIN_ERASE_UNIT)       
+#define B_KV_SIZE               (4 * B_KV_MIN_ERASE_UNIT)
+     
 
 
 #define B_KV_STA_NO_ITEM         -5

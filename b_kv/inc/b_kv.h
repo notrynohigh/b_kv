@@ -29,15 +29,8 @@
 #include "../port/b_kv_config.h"
 
 
-/***
 
-  b_kv_info
-  b_kv_info_bak
-  b_kv_value
-  b_kv_value_bak
-
-*/
-#define B_KV_INFO_SADDR           B_KV_START_ADDRESS   
+#define B_KV_INFO_SADDR           0   
 #define B_KV_INFO_SIZE            B_KV_MIN_ERASE_UNIT
 
 #define B_KV_INFOBAK_SADDR       (B_KV_INFO_SADDR + B_KV_INFO_SIZE)
@@ -79,7 +72,7 @@ typedef struct
 
 
 
-bKVS32 b_kv_init(void);
+bKVS32 b_kv_init(bKVU32 start_addr);
 bKVS32 b_kv_add_value(bKVU8 *pname, bKVU8* pbuf, bKVU32 len);
 bKVS32 b_kv_get_value(bKVU8 *pname, bKVU8* pbuf, bKVU32* len);
 bKVS32 b_kv_delete_value(bKVU8 *pname);

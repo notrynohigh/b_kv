@@ -39,7 +39,7 @@ typedef signed int         bKVS32;
 #define B_KV_ITEM_MAX_NUMBER    100                 // <= 256 
 #define B_KV_MIN_ERASE_UNIT     0X1000
 
-#define B_KV_START_ADDRESS      0X0000
+
 #define B_KV_SIZE               (4 * B_KV_MIN_ERASE_UNIT)
      
 

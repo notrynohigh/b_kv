@@ -30,6 +30,11 @@ static bKVU32 b_kv_current_number = 0;
 static bKVU8  b_kv_full_flag = 0;
 #define bKV_PER_INFO_SIZE      (sizeof(b_kv_info_t))
 
+static bKVU32 b_kv_info_addr = 0;
+static bKVU32 b_kv_infobak_addr = 0;
+static bKVU32 b_kv_value_addr = 0;
+static bKVU32 b_kv_valuebak_addr = 0;
+
 static bKVU32 _b_kv_create_code(bKVU8 *pstr)
 {
     bKVU32 u32_tmp = 0, i = 0, sum = 0;
@@ -72,13 +77,13 @@ static bKVS32 _b_kv_search_code(bKVU32 code)
 
 static bKVS32 _b_kv_area_clear()
 {
-    return b_kv_port_erase(B_KV_INFO_SADDR, (B_KV_TOTAL_SIZE / B_KV_MIN_ERASE_UNIT));
+    return b_kv_port_erase(b_kv_info_addr, (B_KV_TOTAL_SIZE / B_KV_MIN_ERASE_UNIT));
 }
 
 
 static bKVS32 _b_kv_update_ctable()
 {
-    bKVU32 i = 0, addr = B_KV_INFO_SADDR;
+    bKVU32 i = 0, addr = b_kv_info_addr;
     b_kv_info_t b_kv_info;
     memset(b_kv_code_table, 0, sizeof(b_kv_code_table));
     for(i = 0;i < B_KV_ITEM_MAX_NUMBER;i++)
@@ -103,13 +108,6 @@ static bKVS32 _b_kv_update_ctable()
 }
 
 
-
-
-bKVS32 b_kv_init()
-{
-    return _b_kv_update_ctable();
-}
-
 static bKVS32 _b_kv_get_last_info(b_kv_info_t *pinfo)
 {
     if(pinfo == bKVNULL)
@@ -119,11 +117,11 @@ static bKVS32 _b_kv_get_last_info(b_kv_info_t *pinfo)
     if(b_kv_current_number == 0)
     {
         _b_kv_area_clear();
-        pinfo->address = B_KV_VALUE_SADDR;
+        pinfo->address = b_kv_value_addr;
         pinfo->length = 0;
         return B_KV_STA_OK;
     }
-    return b_kv_port_read(B_KV_INFO_SADDR + ((b_kv_current_number - 1) * bKV_PER_INFO_SIZE), (bKVU8 *)pinfo, bKV_PER_INFO_SIZE);
+    return b_kv_port_read(b_kv_info_addr + ((b_kv_current_number - 1) * bKV_PER_INFO_SIZE), (bKVU8 *)pinfo, bKV_PER_INFO_SIZE);
 }
 
 
@@ -135,12 +133,12 @@ static bKVS32 _b_kv_get_last_info(b_kv_info_t *pinfo)
 static bKVS32 _b_kv_recycle()
 {
     bKVU32 i = 0, j = 0, len, addr, t_index = 0;
-    bKVU32 c_index = 0, v_addr = B_KV_VALUE_SADDR;
+    bKVU32 c_index = 0, v_addr = b_kv_value_addr;
     b_kv_info_t b_kv_info;
     bKVU8 tmp_buf[TMP_BUF_SIZE];
     /** erase info and value */
-    b_kv_port_erase(B_KV_INFO_SADDR, B_KV_INFO_SIZE / B_KV_MIN_ERASE_UNIT);
-    b_kv_port_erase(B_KV_VALUE_SADDR, B_KV_VALUE_SIZE / B_KV_MIN_ERASE_UNIT);
+    b_kv_port_erase(b_kv_info_addr, B_KV_INFO_SIZE / B_KV_MIN_ERASE_UNIT);
+    b_kv_port_erase(b_kv_value_addr, B_KV_VALUE_SIZE / B_KV_MIN_ERASE_UNIT);
     /** update code_table[] delete the same code */
     for(i = 0;i < B_KV_ITEM_MAX_NUMBER;i++)
     {
@@ -172,7 +170,7 @@ static bKVS32 _b_kv_recycle()
                 b_kv_code_table[c_index] = 0;
             }
             //read b_kv_info from info_bak
-            b_kv_port_read(B_KV_INFOBAK_SADDR + (c_index * bKV_PER_INFO_SIZE), (bKVU8 *)&b_kv_info, bKV_PER_INFO_SIZE);
+            b_kv_port_read(b_kv_infobak_addr + (c_index * bKV_PER_INFO_SIZE), (bKVU8 *)&b_kv_info, bKV_PER_INFO_SIZE);
             len = b_kv_info.length;    
             addr = b_kv_info.address;
             b_kv_info.address = v_addr;     //adjust address
@@ -192,14 +190,14 @@ static bKVS32 _b_kv_recycle()
             }
             /***   copy value finished    **/
             /***   write info             **/
-            b_kv_port_write(B_KV_INFO_SADDR + (t_index * bKV_PER_INFO_SIZE), (bKVU8 *)&b_kv_info, bKV_PER_INFO_SIZE);
+            b_kv_port_write(b_kv_info_addr + (t_index * bKV_PER_INFO_SIZE), (bKVU8 *)&b_kv_info, bKV_PER_INFO_SIZE);
             t_index++;
         }
     }
     /**  update current_number  **/
     b_kv_current_number = t_index;
     if((b_kv_current_number == B_KV_ITEM_MAX_NUMBER) || 
-        (v_addr >= (B_KV_VALUE_SADDR + B_KV_VALUE_SIZE - 5)))
+        (v_addr >= (b_kv_value_addr + B_KV_VALUE_SIZE - 5)))
     {
         b_kv_full_flag = 0x1;
     }
@@ -208,17 +206,17 @@ static bKVS32 _b_kv_recycle()
         b_kv_full_flag = 0x0;
     }
     /** erase bak and rewrite bak */
-    b_kv_port_erase(B_KV_INFOBAK_SADDR, B_KV_INFOBAK_SIZE / B_KV_MIN_ERASE_UNIT);
-    b_kv_port_erase(B_KV_VALUEBAK_SADDR, B_KV_VALUEBAK_SIZE / B_KV_MIN_ERASE_UNIT);
+    b_kv_port_erase(b_kv_infobak_addr, B_KV_INFOBAK_SIZE / B_KV_MIN_ERASE_UNIT);
+    b_kv_port_erase(b_kv_valuebak_addr, B_KV_VALUEBAK_SIZE / B_KV_MIN_ERASE_UNIT);
     for(i = 0;i < (B_KV_INFOBAK_SIZE / TMP_BUF_SIZE);i++)
     {
-        b_kv_port_read(B_KV_INFO_SADDR + (i * TMP_BUF_SIZE), tmp_buf, TMP_BUF_SIZE);
-        b_kv_port_write(B_KV_INFOBAK_SADDR + (i * TMP_BUF_SIZE), tmp_buf, TMP_BUF_SIZE);      
+        b_kv_port_read(b_kv_info_addr + (i * TMP_BUF_SIZE), tmp_buf, TMP_BUF_SIZE);
+        b_kv_port_write(b_kv_infobak_addr + (i * TMP_BUF_SIZE), tmp_buf, TMP_BUF_SIZE);      
     }
     for(i = 0;i < (B_KV_VALUEBAK_SIZE / TMP_BUF_SIZE);i++)
     {
-        b_kv_port_read(B_KV_VALUE_SADDR + (i * TMP_BUF_SIZE), tmp_buf, TMP_BUF_SIZE);
-        b_kv_port_write(B_KV_VALUEBAK_SADDR + (i * TMP_BUF_SIZE), tmp_buf, TMP_BUF_SIZE);      
+        b_kv_port_read(b_kv_value_addr + (i * TMP_BUF_SIZE), tmp_buf, TMP_BUF_SIZE);
+        b_kv_port_write(b_kv_valuebak_addr + (i * TMP_BUF_SIZE), tmp_buf, TMP_BUF_SIZE);      
     }   
     return B_KV_STA_OK;
 }
@@ -236,7 +234,7 @@ static bKVS32 _b_kv_add_new(bKVU32 code, bKVU8* pbuf, bKVU32 len)
     b_kv_info.address = b_kv_last_info.address + b_kv_last_info.length;
     b_kv_info.length = len;
     b_kv_info.reserved = 0xffffffff;	
-    if((b_kv_current_number == B_KV_ITEM_MAX_NUMBER) || ((b_kv_info.address + b_kv_info.length) >= B_KV_VALUEBAK_SADDR))
+    if((b_kv_current_number == B_KV_ITEM_MAX_NUMBER) || ((b_kv_info.address + b_kv_info.length) >= b_kv_valuebak_addr))
     {
         _b_kv_recycle();
         if(b_kv_full_flag == 0x1)
@@ -245,7 +243,7 @@ static bKVS32 _b_kv_add_new(bKVU32 code, bKVU8* pbuf, bKVU32 len)
         } 
 		_b_kv_get_last_info(&b_kv_last_info);
 		b_kv_info.address = b_kv_last_info.address + b_kv_last_info.length;
-        if((b_kv_info.address + b_kv_info.length) >= B_KV_VALUEBAK_SADDR)
+        if((b_kv_info.address + b_kv_info.length) >= b_kv_valuebak_addr)
 		{
 			return B_KV_STA_NO_SIZE;
 		}			
@@ -254,8 +252,8 @@ static bKVS32 _b_kv_add_new(bKVU32 code, bKVU8* pbuf, bKVU32 len)
     if((B_KV_STA_OK == b_kv_port_write(b_kv_info.address, pbuf, len))
         && (B_KV_STA_OK == b_kv_port_write(b_kv_info.address + B_KV_VALUE_SIZE, pbuf, len)))
     {
-        if((B_KV_STA_OK == b_kv_port_write(B_KV_INFO_SADDR + (b_kv_current_number * bKV_PER_INFO_SIZE), (bKVU8*)&b_kv_info, bKV_PER_INFO_SIZE))
-            && (B_KV_STA_OK == b_kv_port_write(B_KV_INFOBAK_SADDR + (b_kv_current_number * bKV_PER_INFO_SIZE), (bKVU8*)&b_kv_info, bKV_PER_INFO_SIZE)))
+        if((B_KV_STA_OK == b_kv_port_write(b_kv_info_addr + (b_kv_current_number * bKV_PER_INFO_SIZE), (bKVU8*)&b_kv_info, bKV_PER_INFO_SIZE))
+            && (B_KV_STA_OK == b_kv_port_write(b_kv_infobak_addr + (b_kv_current_number * bKV_PER_INFO_SIZE), (bKVU8*)&b_kv_info, bKV_PER_INFO_SIZE)))
         {
             b_kv_code_table[b_kv_current_number] = code;
             b_kv_current_number++;
@@ -303,7 +301,7 @@ bKVS32 b_kv_get_value(bKVU8 *pname, bKVU8* pbuf, bKVU32* len)
     index = _b_kv_search_code(code_tmp);
     if(index >= 0)
     {
-        if(B_KV_STA_OK == b_kv_port_read(B_KV_INFO_SADDR + (index * bKV_PER_INFO_SIZE), (bKVU8*)&b_kv_info, bKV_PER_INFO_SIZE))
+        if(B_KV_STA_OK == b_kv_port_read(b_kv_info_addr + (index * bKV_PER_INFO_SIZE), (bKVU8*)&b_kv_info, bKV_PER_INFO_SIZE))
         {
             if(B_KV_STA_OK == b_kv_port_read(b_kv_info.address, pbuf, b_kv_info.length))
             {
@@ -336,8 +334,8 @@ bKVS32 b_kv_delete_value(bKVU8 *pname)
         if(b_kv_code_table[i] == code_tmp)
         {
             b_kv_code_table[i] = 0;
-            b_kv_port_write(B_KV_INFO_SADDR + (i * bKV_PER_INFO_SIZE), (bKVU8 *)&b_kv_info, bKV_PER_INFO_SIZE);
-            b_kv_port_write(B_KV_INFOBAK_SADDR + (i * bKV_PER_INFO_SIZE), (bKVU8 *)&b_kv_info, bKV_PER_INFO_SIZE);
+            b_kv_port_write(b_kv_info_addr + (i * bKV_PER_INFO_SIZE), (bKVU8 *)&b_kv_info, bKV_PER_INFO_SIZE);
+            b_kv_port_write(b_kv_infobak_addr + (i * bKV_PER_INFO_SIZE), (bKVU8 *)&b_kv_info, bKV_PER_INFO_SIZE);
         }
     }
     if(b_kv_full_flag == 0x1)
@@ -348,9 +346,14 @@ bKVS32 b_kv_delete_value(bKVU8 *pname)
 }
 
 
-
-
-
+bKVS32 b_kv_init(bKVU32 start_addr)
+{
+    b_kv_info_addr = start_addr;
+    b_kv_infobak_addr = start_addr + B_KV_INFO_SIZE;
+    b_kv_value_addr = b_kv_infobak_addr + B_KV_INFOBAK_SIZE;
+    b_kv_valuebak_addr = b_kv_value_addr + B_KV_VALUE_SIZE;
+    return _b_kv_update_ctable();
+}
 
 
 

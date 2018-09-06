@@ -22,35 +22,25 @@
  *****************************************************************************
  */
 #include "b_kv_port.h"
-#include <stdint.h>
-#include <string.h>
-
-uint8_t f_table[4][4096];
-
-
-
+#include "./spiflash/flash_dev.h"
 
 
 bKVS32 b_kv_port_erase(bKVU32 addr, bKVU32 n)
 {
-	uint8_t *p = (uint8_t *)f_table;
-	n = n * 4096;
-	memset(p + addr, 0, n);
+	flash_erase_xsector(addr, n);
     return 0;
 }
 
 bKVS32 b_kv_port_write(bKVU32 addr, bKVU8 *buf, bKVU32 len)
 {
-	uint8_t *p = (uint8_t *)f_table;
-    memcpy(p + addr, buf, len);
+	flash_write_buf(buf, addr, len);
     return 0;
 }
 
 
 bKVS32 b_kv_port_read(bKVU32 addr, bKVU8 *buf, bKVU32 len)
 {
-	uint8_t *p = (uint8_t *)f_table;
-    memcpy(buf, p + addr, len);
+	flash_read_buf(buf, addr, len);
     return 0;
 }
 

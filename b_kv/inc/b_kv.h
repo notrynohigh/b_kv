@@ -43,7 +43,7 @@
 #define B_KV_VALUEBAK_SIZE        B_KV_VALUE_SIZE
 
 #define B_KV_MAX_ADDRESS         (B_KV_VALUEBAK_SADDR + B_KV_VALUEBAK_SIZE)
-#define B_KV_TOTAL_SIZE          (4 * B_KV_MIN_ERASE_UNIT)
+#define B_KV_TOTAL_SIZE          (B_KV_MAX_ADDRESS - B_KV_INFO_SADDR)
 
 #if (B_KV_TOTAL_SIZE > B_KV_SIZE)
 #error "FLASH SIZE ERROR ..."
@@ -76,7 +76,8 @@ bKVS32 b_kv_init(bKVU32 start_addr);
 bKVS32 b_kv_add_value(bKVU8 *pname, bKVU8* pbuf, bKVU32 len);
 bKVS32 b_kv_get_value(bKVU8 *pname, bKVU8* pbuf, bKVU32* len);
 bKVS32 b_kv_delete_value(bKVU8 *pname);
-
+bKVS32 b_kv_get_info(bKVU32 **pinfo);
+bKVS32 b_kv_get_cnumber(bKVU32 *number);
 
 
 #endif

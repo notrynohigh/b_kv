@@ -84,7 +84,7 @@ static bKVS32 _b_kv_update_ctable()
     for(i = 0;i < B_KV_ITEM_MAX_NUMBER;i++)
     {
         b_kv_port_read(addr + (i * bKV_PER_INFO_SIZE), (bKVU8 *)&b_kv_info, bKV_PER_INFO_SIZE);
-        if(b_kv_info.length == 0x0)
+        if(b_kv_info.length == 0x0 || b_kv_info.length == 0xffffffff)
         {
             continue;
         }
